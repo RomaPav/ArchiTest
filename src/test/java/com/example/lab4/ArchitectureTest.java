@@ -7,7 +7,6 @@ import com.example.lab4.service.EntityService;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +55,45 @@ class ArchitectureTest {
                 .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller", "Service")
                 .whereLayer("Repository").mayOnlyBeAccessedByLayers("Service")
                 .whereLayer("DTO").mayOnlyBeAccessedByLayers("Service")
+                .check(importedClasses);
+    }
+    @Test
+    void servicesShouldNotDependOnController() {
+        noClasses()
+                .that().resideInAPackage("..service..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("..controller..")
+                .because("out of arch rules")
+                .check(importedClasses);
+    }
+    @Test
+    void repositoryShouldNotDependOnControllerAndRepository() {
+        noClasses()
+                .that().resideInAPackage("..repository..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("..controller..")
+                .andShould()
+                .dependOnClassesThat()
+                .resideInAPackage("..repository..")
+                .because("out of arch rules")
+                .check(importedClasses);
+    }
+    @Test
+    void controllerShouldNotDependOnControllerAndRepositoryAndService() {
+        noClasses()
+                .that().resideInAPackage("..repository..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("..controller..")
+                .andShould()
+                .dependOnClassesThat()
+                .resideInAPackage("..repository..")
+                .andShould()
+                .dependOnClassesThat()
+                .resideInAPackage("..repository..")
+                .because("out of arch rules")
                 .check(importedClasses);
     }
 
@@ -192,7 +231,7 @@ class ArchitectureTest {
     }
 
     @Test
-    public void testModelClassesContainDiscription() {
+    public void testModelClassesContainDescription() {
         Entity entity = new Entity();
         try {
             Field privateFieldDescription = Entity.class.getDeclaredField("description");
