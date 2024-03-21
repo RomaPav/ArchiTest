@@ -34,4 +34,15 @@ public class Entity {
     String description;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        return "Entity{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }
